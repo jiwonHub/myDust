@@ -6,6 +6,8 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
+import com.example.dust.data.service.Repository
+import com.example.dust.data.service.models.tmcoordinates.monitoringstation.MonitoringStation
 import com.example.dust.databinding.ActivityMainBinding
 import com.google.android.gms.common.api.HasApiKey
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -14,13 +16,14 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private var cancellationTokenSource: CancellationTokenSource? = null
 
-    private val binding by lazy { ActivityMainBinding.inflate(layoutInflater)}
+    private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     private val scope = MainScope()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,7 +74,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("MissingPermission", "SetTextI18n")
-    private fun fetchAirQualityData(){
+    private fun fetchAirQualityData() {
         cancellationTokenSource = CancellationTokenSource()
 
         fusedLocationProviderClient
@@ -79,7 +82,12 @@ class MainActivity : AppCompatActivity() {
                 LocationRequest.PRIORITY_HIGH_ACCURACY,
                 cancellationTokenSource!!.token
             ).addOnSuccessListener { location ->
-                binding.textView.text = "${location.latitude}, ${location.longitude}"
+                scope.launch {
+                    val monitoringStation =
+                        Repository.getNearbyMonitoringStation(location.latitude, location.longitude)
+
+                    binding.textView.text = monitoringStation?.stationName
+                }
             }
     }
 
