@@ -1,6 +1,8 @@
 package com.example.dust.data.service
 
+import android.content.ClipData.Item
 import com.example.dust.BuildConfig
+import com.example.dust.data.service.models.tmcoordinates.airquality.MeasuredValue
 import com.example.dust.data.service.models.tmcoordinates.monitoringstation.MonitoringStation
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -28,6 +30,15 @@ object Repository {
             ?.monitoringStations
             ?.minByOrNull { it!!.tm ?: Double.MAX_VALUE }
     }
+
+    suspend fun getLatesetAirQualityData(stationName: String): MeasuredValue? =
+        airKoreaApiService
+            .getRealtimeAirQualities(stationName)
+            .body()
+            ?.response
+            ?.body
+            ?.measuredValue
+            ?.firstOrNull()
 
     private val kakaoLocalApiService: KakaoLocalApiService by lazy{
         Retrofit.Builder()
